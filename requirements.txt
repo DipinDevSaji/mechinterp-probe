@@ -1,0 +1,7 @@
+transformer-lens>=2.0.0
+transformers>=4.40.0,<4.46.0
+torch>=2.0.0
+pytest>=8.0.0
+urllib3<2
+matplotlib>=3.5.0
+streamlit>=1.30.0

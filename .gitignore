@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.streamlit/
+reports/*.json
+reports/*.png
+.DS_Store
