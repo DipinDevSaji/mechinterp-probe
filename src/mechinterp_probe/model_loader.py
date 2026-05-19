@@ -3,9 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
-import os
-import sys
 from typing import Any
 
 from mechinterp_probe.activation_capture import (
@@ -52,13 +49,12 @@ def load_model(model_name: str = "gpt2-small") -> LoadedModel:
     """Load GPT-2 Small, preferring TransformerLens when installed."""
 
     try:
-        with _without_local_pytest_shadow():
-            from transformer_lens import HookedTransformer
+        from transformer_lens import HookedTransformer
 
-            try:
-                model = HookedTransformer.from_pretrained(model_name, local_files_only=True)
-            except Exception:
-                model = HookedTransformer.from_pretrained(model_name)
+        try:
+            model = HookedTransformer.from_pretrained(model_name, local_files_only=True)
+        except Exception:
+            model = HookedTransformer.from_pretrained(model_name)
         model.eval()
         return LoadedModel(
             model_name=model_name,
@@ -95,30 +91,3 @@ def run_prompt(prompt: str, model: LoadedModel | None = None) -> dict[str, Any]:
 
     loaded_model = model or load_model()
     return loaded_model.run_prompt(prompt)
-
-
-class _without_local_pytest_shadow:
-    """Avoid repo-local pytest.py shadowing real pytest during TransformerLens import."""
-
-    def __enter__(self) -> None:
-        self.original_path = list(sys.path)
-        self.original_pytest = sys.modules.get("pytest")
-        shadow_paths = {
-            str(Path(path or os.getcwd()).resolve())
-            for path in sys.path
-            if (Path(path or os.getcwd()).resolve() / "pytest.py").exists()
-        }
-        sys.path = [
-            path
-            for path in sys.path
-            if str(Path(path or os.getcwd()).resolve()) not in shadow_paths
-        ]
-        loaded_pytest = sys.modules.get("pytest")
-        loaded_file = getattr(loaded_pytest, "__file__", "") if loaded_pytest else ""
-        if loaded_file and str(Path(loaded_file).resolve().parent) in shadow_paths:
-            sys.modules.pop("pytest", None)
-
-    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
-        sys.path = self.original_path
-        if self.original_pytest is not None:
-            sys.modules["pytest"] = self.original_pytest

@@ -1,5 +1,7 @@
 # MechInterp Probe
 
+Live demo: coming soon
+
 MechInterp Probe is a compact mechanistic interpretability toolkit for comparing transformer behaviour across prompts. It starts with GPT-2 Small, captures internal activations, highlights where prompts diverge by layer and token position, and runs small activation patching experiments to test whether selected internal states influence logits.
 
 ## Why It Matters
@@ -77,6 +79,22 @@ The Streamlit dashboard provides sidebar controls for:
 - Random baseline patching
 
 After running analysis, it displays summary metrics, charts, an expandable JSON preview, and download buttons for the main artifacts.
+
+## Deployment Notes
+
+For a Streamlit deployment, the app entry point is:
+
+```text
+app.py
+```
+
+For Hugging Face Spaces:
+
+- SDK: Streamlit
+- App file: `app.py`
+- Python dependencies: `requirements.txt`
+
+Do not commit generated reports, local model caches, `.env` files, or Streamlit secrets.
 
 ## Screenshots
 
