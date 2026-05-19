@@ -1,5 +1,7 @@
 # MechInterp Probe
 
+![CI](https://github.com/DipinDevSaji/mechinterp-probe/actions/workflows/ci.yml/badge.svg)
+
 Live demo: coming soon
 
 MechInterp Probe is a compact mechanistic interpretability toolkit for comparing transformer behaviour across prompts. It starts with GPT-2 Small, captures internal activations, highlights where prompts diverge by layer and token position, and runs small activation patching experiments to test whether selected internal states influence logits.
