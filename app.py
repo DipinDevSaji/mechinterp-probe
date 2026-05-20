@@ -320,7 +320,7 @@ def show_recommended_follow_up(report: dict[str, Any]) -> None:
     if baseline:
         if effect_ratio is not None:
             recommendations.append(
-                "Run repeated random baselines with multiple seeds before making stronger circuit claims."
+                "Run repeated random baselines with multiple seeds before making stronger interpretability claims."
             )
         else:
             recommendations.append(
@@ -335,7 +335,7 @@ def show_recommended_follow_up(report: dict[str, Any]) -> None:
         "Treat the result as exploratory evidence, not final proof of a model circuit."
     )
 
-    st.subheader("Recommended Follow-up")
+    st.subheader("Recommended Next Steps")
     st.markdown(
         f"""
         <div class="followup-card">
