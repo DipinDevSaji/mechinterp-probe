@@ -206,6 +206,7 @@ def show_summary_metrics(report: dict[str, Any]) -> None:
     if baseline.get("interpretation"):
         st.info(baseline["interpretation"])
     show_result_interpretation(report)
+    show_recommended_follow_up(report)
 
 
 def show_app_overview() -> None:
@@ -282,6 +283,65 @@ def show_result_interpretation(report: dict[str, Any]) -> None:
         f"""
         <div class="interpretation-card">
             {' '.join(f'<p>{paragraph}</p>' for paragraph in paragraphs)}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def show_recommended_follow_up(report: dict[str, Any]) -> None:
+    top_layer = (report.get("top_changed_layers") or [{}])[0]
+    multi_site = report.get("multi_site_activation_patching")
+    baseline = report.get("random_baseline_patching")
+    aggregate = (multi_site or {}).get("aggregate_summary") or {}
+
+    layer_name = top_layer.get("layer", "the top changed layer")
+    most_sensitive = aggregate.get("most_sensitive_position")
+    effect_ratio = baseline.get("effect_ratio") if baseline else None
+
+    recommendations = [
+        f"Re-run with related prompt pairs to check whether {layer_name} remains the dominant changed layer.",
+    ]
+
+    if multi_site:
+        if most_sensitive is not None:
+            recommendations.append(
+                f"Inspect token position {most_sensitive} more closely with nearby prompts or token-level variants."
+            )
+        else:
+            recommendations.append(
+                "Review the multi-site patching output to see whether any token position is consistently sensitive."
+            )
+    else:
+        recommendations.append(
+            "Enable multi-site patching to estimate which changed token positions are most sensitive."
+        )
+
+    if baseline:
+        if effect_ratio is not None:
+            recommendations.append(
+                "Run repeated random baselines with multiple seeds before making stronger circuit claims."
+            )
+        else:
+            recommendations.append(
+                "Repeat the baseline with prompts that provide enough random same-layer positions for comparison."
+            )
+    else:
+        recommendations.append(
+            "After enabling multi-site patching, enable the random baseline to compare targeted positions against random same-layer positions."
+        )
+
+    recommendations.append(
+        "Treat the result as exploratory evidence, not final proof of a model circuit."
+    )
+
+    st.subheader("Recommended Follow-up")
+    st.markdown(
+        f"""
+        <div class="followup-card">
+            <ul>
+                {' '.join(f'<li>{item}</li>' for item in recommendations)}
+            </ul>
         </div>
         """,
         unsafe_allow_html=True,
@@ -471,6 +531,7 @@ def inject_styles() -> None:
             overflow-wrap: anywhere;
         }
         .overview-card,
+        .followup-card,
         .interpretation-card {
             background: #111827;
             border: 1px solid #334155;
@@ -478,6 +539,19 @@ def inject_styles() -> None:
             color: #e5e7eb;
             padding: 1rem 1.1rem;
             margin-top: 0.75rem;
+        }
+        .followup-card ul {
+            margin: 0;
+            padding-left: 1.2rem;
+        }
+        .followup-card li {
+            color: #e5e7eb;
+            line-height: 1.55;
+            margin-bottom: 0.55rem;
+        }
+        .followup-card li:last-child {
+            margin-bottom: 0;
+            color: #cbd5e1;
         }
         .overview-card p,
         .interpretation-card p {
