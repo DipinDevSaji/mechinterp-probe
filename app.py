@@ -204,6 +204,73 @@ def show_summary_metrics(report: dict[str, Any]) -> None:
     st.markdown(f"**Summary:** {report.get('summary', '')}")
     if baseline.get("interpretation"):
         st.info(baseline["interpretation"])
+    show_result_interpretation(report)
+
+
+def show_result_interpretation(report: dict[str, Any]) -> None:
+    top_layer = (report.get("top_changed_layers") or [{}])[0]
+    multi_site = report.get("multi_site_activation_patching")
+    baseline = report.get("random_baseline_patching")
+    aggregate = (multi_site or {}).get("aggregate_summary") or {}
+
+    layer_name = top_layer.get("layer", "the top changed layer")
+    mean_difference = _format_number(top_layer.get("mean_activation_difference"))
+    paragraphs = [
+        (
+            f"The two prompts diverged most strongly in {layer_name}, with a mean "
+            f"activation difference of {mean_difference}. This suggests the strongest "
+            "observed internal representation shift occurred in this transformer layer."
+        )
+    ]
+
+    if multi_site:
+        most_sensitive = aggregate.get("most_sensitive_position")
+        if most_sensitive is not None:
+            paragraphs.append(
+                "Multi-site patching found the most sensitive tested token position "
+                f"at position {most_sensitive}."
+            )
+        else:
+            paragraphs.append(
+                "Multi-site patching ran, but no most-sensitive token position was estimated."
+            )
+    else:
+        paragraphs.append(
+            "Multi-site patching was not enabled, so no most-sensitive position was estimated."
+        )
+
+    if baseline:
+        effect_ratio = baseline.get("effect_ratio")
+        if effect_ratio is not None:
+            paragraphs.append(
+                "The selected top-changed positions produced larger average shifts than "
+                "random same-layer positions, with a baseline effect ratio of "
+                f"{_format_number(effect_ratio)}."
+            )
+        else:
+            paragraphs.append(
+                "A random baseline was requested, but it did not produce a usable effect ratio."
+            )
+    else:
+        paragraphs.append(
+            "No random baseline was run, so the selected positions were not compared "
+            "against random same-layer positions."
+        )
+
+    paragraphs.append(
+        "These results are exploratory interpretability signals, not definitive proof "
+        "of a complete model circuit."
+    )
+
+    st.subheader("Result Interpretation")
+    st.markdown(
+        f"""
+        <div class="interpretation-card">
+            {' '.join(f'<p>{paragraph}</p>' for paragraph in paragraphs)}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def show_charts(report: dict[str, Any], output_paths: dict[str, Path]) -> None:
@@ -387,6 +454,22 @@ def inject_styles() -> None:
             font-weight: 700;
             line-height: 1.15;
             overflow-wrap: anywhere;
+        }
+        .interpretation-card {
+            background: #111827;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            color: #e5e7eb;
+            padding: 1rem 1.1rem;
+            margin-top: 0.75rem;
+        }
+        .interpretation-card p {
+            margin: 0 0 0.85rem 0;
+            line-height: 1.55;
+        }
+        .interpretation-card p:last-child {
+            margin-bottom: 0;
+            color: #cbd5e1;
         }
         section[data-testid="stSidebar"] textarea {
             font-size: 0.92rem;
