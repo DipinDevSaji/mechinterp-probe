@@ -82,6 +82,10 @@ The Streamlit dashboard provides sidebar controls for:
 
 After running analysis, it displays summary metrics, charts, an expandable JSON preview, and download buttons for the main artifacts.
 
+## Findings
+
+*Coming soon — a worked example identifying a refusal circuit in GPT-2 Small using the prompt-compare and activation-patching pipeline.*
+
 ## Deployment Notes
 
 For a Streamlit deployment, the app entry point is:
