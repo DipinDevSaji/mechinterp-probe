@@ -94,6 +94,7 @@ def main() -> None:
             include_baseline = False
         run_analysis = st.button("Run analysis", type="primary", use_container_width=True)
 
+    show_app_overview()
     show_explanation_boxes()
 
     if run_analysis:
@@ -205,6 +206,20 @@ def show_summary_metrics(report: dict[str, Any]) -> None:
     if baseline.get("interpretation"):
         st.info(baseline["interpretation"])
     show_result_interpretation(report)
+
+
+def show_app_overview() -> None:
+    st.subheader("What this app does")
+    st.markdown(
+        """
+        <div class="overview-card">
+            <p>MechInterp Probe compares two prompts on GPT-2 Small and shows where the model's internal behaviour changes.</p>
+            <p>Enter a normal prompt and a contrasting prompt, such as a safety-related or instruction-conflict prompt. The app captures transformer activations, identifies the layers and token positions with the biggest internal shifts, and runs activation patching checks to test whether those internal states affect the model's next-token predictions.</p>
+            <p>Use it as an exploratory research tool for understanding model internals. The results are evidence for further investigation, not final proof of a model circuit.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def show_result_interpretation(report: dict[str, Any]) -> None:
@@ -455,6 +470,7 @@ def inject_styles() -> None:
             line-height: 1.15;
             overflow-wrap: anywhere;
         }
+        .overview-card,
         .interpretation-card {
             background: #111827;
             border: 1px solid #334155;
@@ -463,10 +479,12 @@ def inject_styles() -> None:
             padding: 1rem 1.1rem;
             margin-top: 0.75rem;
         }
+        .overview-card p,
         .interpretation-card p {
             margin: 0 0 0.85rem 0;
             line-height: 1.55;
         }
+        .overview-card p:last-child,
         .interpretation-card p:last-child {
             margin-bottom: 0;
             color: #cbd5e1;
