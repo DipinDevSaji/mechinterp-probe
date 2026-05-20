@@ -74,31 +74,55 @@ def main() -> None:
         include_multi_site = st.checkbox(
             "Multi-site patching",
             value=True,
+            key="include_multi_site",
             help="Repeat patching over several top changed token positions.",
         )
+        if not include_multi_site:
+            st.session_state["include_baseline"] = False
+            st.caption(
+                "Enable multi-site patching to compare top changed positions against a random baseline."
+            )
+        elif "include_baseline" not in st.session_state:
+            st.session_state["include_baseline"] = True
         include_baseline = st.checkbox(
             "Random same-layer baseline",
-            value=True,
+            key="include_baseline",
+            disabled=not include_multi_site,
             help="Compare top changed positions against random positions in the same layer.",
         )
+        if not include_multi_site:
+            include_baseline = False
         run_analysis = st.button("Run analysis", type="primary", use_container_width=True)
 
     show_explanation_boxes()
 
-    if not run_analysis:
+    if run_analysis:
+        with st.spinner("Running model analysis and writing reports..."):
+            report, output_paths = run_analysis_to_reports(
+                model_name=model_name,
+                prompt_a=prompt_a,
+                prompt_b=prompt_b,
+                include_patching=include_patching,
+                include_multi_site=include_multi_site,
+                include_baseline=include_baseline,
+            )
+        st.session_state["analysis_complete"] = True
+        st.session_state["latest_report"] = report
+        st.session_state["latest_output_paths"] = {
+            key: str(path)
+            for key, path in output_paths.items()
+        }
+
+    if not st.session_state.get("analysis_complete"):
         st.info("Configure prompts in the sidebar, then run the analysis.")
         show_footer()
         return
 
-    with st.spinner("Running model analysis and writing reports..."):
-        report, output_paths = run_analysis_to_reports(
-            model_name=model_name,
-            prompt_a=prompt_a,
-            prompt_b=prompt_b,
-            include_patching=include_patching,
-            include_multi_site=include_multi_site,
-            include_baseline=include_baseline,
-        )
+    report = st.session_state["latest_report"]
+    output_paths = {
+        key: Path(path)
+        for key, path in st.session_state["latest_output_paths"].items()
+    }
 
     st.success("Analysis complete.")
     show_summary_metrics(report)
@@ -120,6 +144,7 @@ def run_analysis_to_reports(
     include_baseline: bool,
 ) -> tuple[dict[str, Any], dict[str, Path]]:
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    include_baseline = include_baseline and include_multi_site
 
     report = compare_prompts(
         prompt_a,
@@ -197,23 +222,25 @@ def show_charts(report: dict[str, Any], output_paths: dict[str, Path]) -> None:
         _show_image(output_paths["token_heatmap"])
         st.caption("Top-layer token heatmap")
 
-    with st.container(border=True):
-        st.markdown("### Multi-Site Patching Effects")
-        st.markdown("Largest shift per tested token position in the top changed layer.")
-        _show_patching_image(
-            report.get("multi_site_activation_patching"),
-            output_paths["multi_site_chart"],
-        )
-        st.caption("Multi-site patching effects")
+    if "multi_site_activation_patching" in report:
+        with st.container(border=True):
+            st.markdown("### Multi-Site Patching Effects")
+            st.markdown("Largest shift per tested token position in the top changed layer.")
+            _show_patching_image(
+                report.get("multi_site_activation_patching"),
+                output_paths["multi_site_chart"],
+            )
+            st.caption("Multi-site patching effects")
 
-    with st.container(border=True):
-        st.markdown("### Random Baseline Comparison")
-        st.markdown("Top changed token positions compared with random same-layer positions.")
-        _show_baseline_image(
-            report.get("random_baseline_patching"),
-            output_paths["baseline_chart"],
-        )
-        st.caption("Random baseline comparison")
+    if "random_baseline_patching" in report:
+        with st.container(border=True):
+            st.markdown("### Random Baseline Comparison")
+            st.markdown("Top changed token positions compared with random same-layer positions.")
+            _show_baseline_image(
+                report.get("random_baseline_patching"),
+                output_paths["baseline_chart"],
+            )
+            st.caption("Random baseline comparison")
 
 
 def show_downloads(output_paths: dict[str, Path]) -> None:
