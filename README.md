@@ -84,7 +84,7 @@ After running analysis, it displays summary metrics, charts, an expandable JSON 
 
 ## Findings
 
-*Coming soon - a worked example investigating refusal-like prompt divergence in GPT-2 Small using the prompt-compare and activation-patching pipeline.*
+Using 30 paired safe and instruction-conflict prompts, MechInterp Probe identified several candidate GPT-2 Small attention heads with concentrated activation divergence. In the Phase 2 ablation study, L11H0 produced the strongest effect, with an ablation effect ratio of 3.094 against repeated random same-layer baselines. Other candidate heads such as L4H7, L9H3, L4H11, and L11H8 also exceeded the random baseline, while some high-divergence heads fell below baseline during ablation. These results suggest exploratory evidence of localised instruction-conflict sensitivity in selected attention heads, but they do not prove a complete refusal or safety circuit.
 
 ## V2 Research Extension: Head-Level Instruction-Conflict Localisation
 
