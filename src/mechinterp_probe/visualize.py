@@ -186,6 +186,45 @@ def plot_head_difference_chart(report: dict[str, Any], output_path: str | Path) 
     return path
 
 
+def plot_head_ablation_effect_ratios(report: dict[str, Any], output_path: str | Path) -> Path:
+    """Write a candidate head ablation effect-ratio chart."""
+
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    rows = report.get("candidate_effect_ratios") or []
+    labels = [row["label"] for row in rows]
+    values = [
+        row["effect_ratio"] if row.get("effect_ratio") is not None else 0.0
+        for row in rows
+    ]
+    if not values:
+        labels = ["none"]
+        values = [0.0]
+    y_max = max(max(values), 1.0)
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    bars = ax.bar(labels, values, color="#2f6f73")
+    ax.axhline(1.0, color="#865d3c", linestyle="--", linewidth=1.5, label="random baseline")
+    ax.set_title("Candidate Head Ablation vs Random Baseline")
+    ax.set_xlabel("Candidate attention head")
+    ax.set_ylabel("Effect ratio")
+    ax.set_ylim(0, y_max * 1.25)
+    ax.grid(axis="y", alpha=0.25)
+    ax.legend()
+    ax.bar_label(bars, labels=[f"{value:.2f}" for value in values], padding=3, fontsize=8)
+    fig.tight_layout()
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
+
+    return path
+
+
 def _shorten_token_label(token: str, max_length: int = 18) -> str:
     clean = token.replace("\n", "\\n")
     if len(clean) <= max_length:

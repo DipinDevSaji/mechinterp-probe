@@ -92,6 +92,12 @@ The v2 research extension analyses 30 paired safe and instruction-conflict promp
 
 This is exploratory localisation: high-scoring heads are candidates for follow-up study, not proof of a complete circuit. The next phase will add head ablation and repeated random baselines to test whether candidate heads have more specific causal effects.
 
+## Phase 2: Head Ablation and Repeated Baselines
+
+Phase 2 takes candidate heads from Head-Level Instruction-Conflict Localisation and tests them with attention-head ablation. Each candidate head is zeroed at `blocks.{layer}.attn.hook_z`, and its mean next-token logit shift is compared against repeated random same-layer head baselines.
+
+These results are exploratory evidence only. They do not prove a complete circuit. A future Findings paragraph will be added only after reviewing whether ablation effects are stable across prompt variants, random seeds, and more controlled baselines.
+
 ## Deployment Notes
 
 For a Streamlit deployment, the app entry point is:
