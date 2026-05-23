@@ -84,7 +84,13 @@ After running analysis, it displays summary metrics, charts, an expandable JSON 
 
 ## Findings
 
-*Coming soon — a worked example identifying a refusal circuit in GPT-2 Small using the prompt-compare and activation-patching pipeline.*
+*Coming soon - a worked example investigating refusal-like prompt divergence in GPT-2 Small using the prompt-compare and activation-patching pipeline.*
+
+## V2 Research Extension: Head-Level Instruction-Conflict Localisation
+
+The v2 research extension analyses 30 paired safe and instruction-conflict prompts from `data/instruction_conflict_pairs.json`. It compares attention-head output activations and ranks candidate heads by mean activation divergence between each safe prompt and its matching instruction-conflict prompt.
+
+This is exploratory localisation: high-scoring heads are candidates for follow-up study, not proof of a complete circuit. The next phase will add head ablation and repeated random baselines to test whether candidate heads have more specific causal effects.
 
 ## Deployment Notes
 
@@ -128,6 +134,7 @@ The random same-layer baseline is intentionally simple. It does not replace rigo
 
 - Repeated random baselines across multiple seeds.
 - Attention-head attribution.
+- Head ablation for candidate instruction-conflict heads.
 - Named activation-site support beyond residual stream outputs.
 - Batch prompt comparison.
 - FastAPI/React version.

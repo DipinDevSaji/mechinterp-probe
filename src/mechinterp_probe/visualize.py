@@ -151,6 +151,41 @@ def write_patching_baseline_comparison_chart(
     return path
 
 
+def plot_head_difference_chart(report: dict[str, Any], output_path: str | Path) -> Path:
+    """Write a bar chart of top head-level activation differences."""
+
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    candidates = report.get("top_candidate_heads") or []
+    labels = [candidate["label"] for candidate in candidates]
+    values = [candidate["mean_abs_difference"] for candidate in candidates]
+
+    if not values:
+        labels = ["none"]
+        values = [0.0]
+    y_max = max(values)
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    bars = ax.bar(labels, values, color="#2f6f73")
+    ax.set_title("Head-Level Activation Difference")
+    ax.set_xlabel("Attention head")
+    ax.set_ylabel("Mean absolute activation difference")
+    ax.set_ylim(0, y_max * 1.2 if y_max > 0 else 1)
+    ax.grid(axis="y", alpha=0.25)
+    ax.bar_label(bars, labels=[f"{value:.3f}" for value in values], padding=3, fontsize=8)
+    fig.tight_layout()
+    fig.savefig(path, dpi=160)
+    plt.close(fig)
+
+    return path
+
+
 def _shorten_token_label(token: str, max_length: int = 18) -> str:
     clean = token.replace("\n", "\\n")
     if len(clean) <= max_length:
